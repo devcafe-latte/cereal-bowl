@@ -2,8 +2,8 @@
   "name": "cereal-box",
   "version": "1.0.0",
   "description": "Client for Deadbolt",
-  "main": "build/index.js",
-  "types": "build/index.d.ts",
+  "main": "build/database/database.js",
+  "types": "build/database/database.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/devcafe-latte/cereal-box.git"

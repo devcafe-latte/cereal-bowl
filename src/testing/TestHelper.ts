@@ -56,4 +56,10 @@ export class TestHelper {
     if (this.db) await this.db.shutdown();
   }
 
+  async sleep(ms: number) {
+    return new Promise((res, rej) => {
+      setTimeout(() => res(), ms);
+    });
+  }
+
 }
