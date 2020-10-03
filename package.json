@@ -1,5 +1,5 @@
 {
-  "name": "cereal-box",
+  "name": "cereal-bowl",
   "version": "1.0.0",
   "description": "Simple ORM and Object Serializer",
   "main": "build/database/Database.js",
