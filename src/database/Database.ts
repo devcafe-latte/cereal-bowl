@@ -105,6 +105,8 @@ export class Database {
   }
 
   async shutdown() {
+    if (!this._pool) return;
+    
     return this._pool.end();
   }
 
