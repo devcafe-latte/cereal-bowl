@@ -3,3 +3,5 @@ build
 node_modules
 test-secrets.env
 .env
+craptest.spec.ts
+crap.ts

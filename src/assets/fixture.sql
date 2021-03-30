@@ -32,7 +32,7 @@ CREATE TABLE `book` (
   `subtitle` varchar(255) DEFAULT NULL,
   `isbn` varchar(13) NOT NULL,
   `released` int(11) NOT NULL,
-  `isGood` tinyint(4) NOT NULL,
+  `isGood` tinyint(4) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `authorId` (`authorId`),
   CONSTRAINT `book_ibfk_1` FOREIGN KEY (`authorId`) REFERENCES `author` (`id`) ON DELETE CASCADE
@@ -40,7 +40,7 @@ CREATE TABLE `book` (
 
 INSERT INTO `book` (`id`, `authorId`, `title`, `subTitle`, `isbn`, `released`, `isGood`) VALUES
 (1,	1,	'Being fat is a choice',	NULL,	'0123456789',	1601475287,	1),
-(2,	2,	'De motu corporum in gyrum',	NULL,	'9998887776',	1601475367,	1),
+(2,	2,	'De motu corporum in gyrum',	NULL,	'9998887776',	1601475367,	null),
 (3,	2,	'Reports as Master of the Mint',	NULL,	'665554444888',	1601475367,	0);
 
 -- 2020-09-30 14:17:18

@@ -283,6 +283,17 @@ describe("SELECT Tests", () => {
     done();
   });
 
+  it("Tests getting Booleans", async (done) => {
+    let books = await th.db.getRows<Book>("SELECT * FROM `book` ORDER BY `id`");
+    expect(typeof books[0].isGood).toEqual("boolean");
+    expect(books[0].isGood).toBe(true);
+    expect(books[1].isGood).toBe(null);
+    expect(books[2].isGood).toBe(false);
+    
+    done();
+  });
+
+
 });
 
 describe("getObjects Tests", () => {

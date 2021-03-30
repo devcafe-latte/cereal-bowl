@@ -6,7 +6,7 @@ import { DbModel, UpdateArgs } from './DbModel';
 import { DbConnection } from './DbPool';
 import { SqlResult } from './SqlResults';
 
-export interface DbConfig extends PoolConfig { 
+export interface DbConfig extends PoolConfig {
   tinyIntToBool?: boolean;
   host: string;
   database: string;
@@ -27,8 +27,21 @@ export class Database {
     charset: 'utf8mb4',
   }
 
-  constructor(config: DbConfig) { 
+  constructor(config: DbConfig) {
     this.config = Object.assign(this._defaultConfig, config);
+
+    if (this.config.tinyIntToBool) {
+      this.config.typeCast = (field, next) => {
+        if (field.type === 'TINY') {
+          //Convert tiny ints to bools.
+          const value = field.string();
+          if (value === null) return null;
+          return (value === '1');
+        } else {
+          return next();
+        }
+      }
+    }
   }
 
   public async ready() {
@@ -106,7 +119,7 @@ export class Database {
 
   async shutdown() {
     if (!this._pool) return;
-    
+
     return this._pool.end();
   }
 
