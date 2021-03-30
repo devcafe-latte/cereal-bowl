@@ -1,6 +1,6 @@
 {
   "name": "cereal-bowl",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Simple ORM and Object Serializer",
   "main": "build/database/Database.js",
   "types": "build/database/Database.d.ts",
