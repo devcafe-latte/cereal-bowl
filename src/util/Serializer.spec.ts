@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-import { Serializer, ObjectMapping, serializerMappings } from './Serializer';
+import { Serializer, ObjectMapping, deserializerMappings, serializerMappings } from './Serializer';
 import { Moment } from 'moment';
 
 describe('Deserialize', () => {
@@ -46,7 +46,7 @@ describe('Deserialize', () => {
   });
 
   it('Custom transformations', () => {
-    serializerMappings['grump'] = (data) => `foo ${data}`;
+    deserializerMappings['grump'] = (data) => `foo ${data}`;
     
     const mapping = {
       name: 'grump',
@@ -83,6 +83,7 @@ describe('Serialize', () => {
     expect(Serializer.serialize(1)).toBe(1);
     expect(Serializer.serialize("foo")).toBe("foo");
     expect(Serializer.serialize(false)).toBe(false);
+    expect(Serializer.serialize(moment().year(2020).startOf('year'))).toBe(1577811600);
   });
 
   it("takes a simple array", () => {
@@ -91,10 +92,43 @@ describe('Serialize', () => {
     expect(result).toEqual(array);
   });
 
-  it("takes a simple Object", () => {
+  it("takes a simple Object with several types", () => {
     const obj = { num: 1, str: "foo", bool: false };
     const result = Serializer.serialize(obj);
     expect(result).toEqual(obj);
+  });
+
+  it("takes a simple object With a Moment", () => {
+    const obj = { date: moment() };
+    const result = Serializer.serialize(obj);
+    expect(typeof result.date).toBe('number');
+  });
+
+  it("takes a Custom serializer", () => {
+    serializerMappings.push({
+      name: 'test-1',
+      isType: (val, className) => val.isTestThing !== undefined,
+      serialize: (val) => `moo ${val.name}`,
+    });
+
+    const data = {
+      isTestThing: true,
+      name: 'Ferdinand'
+    }
+
+    expect(Serializer.serialize(data)).toBe('moo Ferdinand');
+
+    const object = {
+      testData: data,
+      foo: 'bar',
+      bluh: { name: 'knop' }
+    }
+
+    const result = Serializer.serialize(object);
+    expect(result.testData).toBe('moo Ferdinand');
+    expect(result.foo).toBe('bar');
+    expect(result.bluh.name).toBe('knop');
+
   });
 
   it("takes a complex Object", () => {

@@ -1,14 +1,28 @@
 import moment from 'moment';
+import { Moment } from 'moment';
 
+//Serialization
+export interface SerializerMapping {
+  name: string;
+  isType: (value: any, className: string) => boolean;
+  serialize: (value: any) => any;
+}
+export const defaultSerializerMappings: SerializerMapping[] = [
+  {
+    name: 'moment',
+    isType: (val, className) => className === 'Moment',
+    serialize: (val: Moment) => val.unix(),
+  },
+];
+export let serializerMappings: SerializerMapping[] = [...defaultSerializerMappings];
 
-export const defaultSerializerMappings: SerializerMapppings = {
+//Deserialization
+export const defaultDeserializerMappings: DeserializerMapppings = {
   'moment': (value) => moment.unix(value),
   'number': (value) => Number(value),
 };
-
-export let serializerMappings: SerializerMapppings = { ...defaultSerializerMappings };
-
-export interface SerializerMapppings {
+export let deserializerMappings: DeserializerMapppings = { ...defaultDeserializerMappings };
+export interface DeserializerMapppings {
   [key: string]: (data: any) => any;
 }
 
@@ -37,18 +51,10 @@ export class Serializer {
     //Function
     if (typeof action === "function") return action(value);
 
-    //Possible string values: Moment 
     const lower = action.toLowerCase();
-
-    if (serializerMappings[lower]) {
-      return serializerMappings[lower](value);
+    if (deserializerMappings[lower]) {
+      return deserializerMappings[lower](value);
     }
-
-    // if (lower === "moment") return moment.unix(value);
-
-    // if (lower === "number") return Number(value);
-
-    //Add more special cases here
 
     console.error("Unknown action", action);
     throw "Unknown action";
@@ -73,7 +79,10 @@ export class Serializer {
     } else if (typeof input === "object" && input !== null) {
       const className = input.constructor.name;
 
-      if (className === 'Moment') return input.unix();
+      for (let m of serializerMappings) {
+        if (m.isType(input, className)) return m.serialize(input);
+      }
+
       if (typeof input.serialize === "function") return input.serialize();
 
       result = {};
