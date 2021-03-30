@@ -1,6 +1,7 @@
 import { Connection, Pool } from 'promise-mysql';
 import { QueryOptions } from 'mysql';
 import { DbError } from './DbError';
+import { Serializer } from '../util/Serializer';
 
 export interface UpdateArgs {
   object: any,
@@ -169,12 +170,15 @@ export class Table {
     if (typeof value === "object") {
       //It can be a Moment, 
       //  or it can be something we don't know what to do with.
-      if (value.constructor.name === "Moment") return value.unix();
 
       //If we have a variable text column, then assume we want to store the json.
       if (value.constructor.name === "Object" && this.getColumn(column).type === "text") {
         return JSON.stringify(value);
       }
+
+      //Use the serializers mappings to convert.
+      const serialized = Serializer.serialize(value);
+      if (typeof serialized !== 'object') return serialized;
 
       throw DbError.new(`Don't know how to convert class '${value.constructor.name}' to database value for column ${column}.`);
     }
