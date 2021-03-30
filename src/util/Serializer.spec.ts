@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-import { Serializer, ObjectMapping } from './Serializer';
+import { Serializer, ObjectMapping, serializerMappings } from './Serializer';
 import { Moment } from 'moment';
 
 describe('Deserialize', () => {
@@ -31,14 +31,29 @@ describe('Deserialize', () => {
     const mapping = {
       created: "Moment",
       name: (v: string) => v.toUpperCase(),
-      nope: (v) => false
+      nope: (v) => false,
+      age: 'nuMBer'
     };
 
-    const user = Serializer.deserialize<User>(User, { uuid: "123", name: 'coo', created: timestamp }, mapping);
+    const user = Serializer.deserialize<User>(User, { uuid: "123", name: 'coo', created: timestamp, age: "44" }, mapping);
     expect(user.name).toBe('COO', "Should be uppercase");
     expect(user.uuid).toBe("123");
+    expect(user.uuid).toBe("123");
+    expect(user.age).toBe(44);
+    expect(typeof user.age).toBe("number");
     expect(user.created.constructor.name).toBe("Moment");
     expect(user.created.unix()).toBe(timestamp);
+  });
+
+  it('Custom transformations', () => {
+    serializerMappings['grump'] = (data) => `foo ${data}`;
+    
+    const mapping = {
+      name: 'grump',
+    };
+
+    const user = Serializer.deserialize<User>(User, { name: 'coo' }, mapping);
+    expect(user.name).toBe('foo coo');
   });
 
   it("Session", () => {
@@ -124,6 +139,7 @@ class User {
   session: Session = null;
   memberships: any[] = null;
   created: Moment = null;
+  age?: number = null;
 }
 
 class Session {

@@ -1,38 +1,55 @@
 import moment from 'moment';
 
+
+export const defaultSerializerMappings: SerializerMapppings = {
+  'moment': (value) => moment.unix(value),
+  'number': (value) => Number(value),
+};
+
+export let serializerMappings: SerializerMapppings = { ...defaultSerializerMappings };
+
+export interface SerializerMapppings {
+  [key: string]: (data: any) => any;
+}
+
 export class Serializer {
   static deserialize<T>(type: { new(): T }, data: any, mapping: ObjectMapping = {}): T {
     if (data === null || data === undefined) return null;
-    
+
     const o = new type();
     for (let key in o) {
       if (!o.hasOwnProperty(key)) continue;
       if (data[key] === undefined) continue;
-  
+
       o[key] = Serializer.mapValue(data[key], mapping[key]);
     }
-  
+
     return o;
   }
-  
+
   private static mapValue(value: any, action: string | Function): any {
     //No mapping
     if (!action) return value;
-  
+
     //Don't do nulls and undefined.
     if (value === null || value === undefined) return value;
-  
+
     //Function
     if (typeof action === "function") return action(value);
-  
+
     //Possible string values: Moment 
     const lower = action.toLowerCase();
-    if (lower === "moment") return moment.unix(value);
-  
-    if (lower === "number") return Number(value);
-  
+
+    if (serializerMappings[lower]) {
+      return serializerMappings[lower](value);
+    }
+
+    // if (lower === "moment") return moment.unix(value);
+
+    // if (lower === "number") return Number(value);
+
     //Add more special cases here
-  
+
     console.error("Unknown action", action);
     throw "Unknown action";
   }
