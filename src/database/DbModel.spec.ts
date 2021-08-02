@@ -1,3 +1,8 @@
+test("Nothing", () => {
+  //Just here to avoid errors... Probably just look at this in the future.
+
+  expect(true).toBe(true);
+})
 
 // import { PoolConnection, Pool } from 'promise-mysql';
 // import { Table, Column, DbModel } from './DbModel';

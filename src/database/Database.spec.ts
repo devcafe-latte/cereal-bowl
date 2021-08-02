@@ -6,7 +6,7 @@ let th: TestHelper;
 
 describe("Database Diagnostics Tests", () => {
 
-  beforeEach(async (done) => {
+  beforeEach(async () => {
     try {
       th = await TestHelper.new();
     } catch (err) {
@@ -14,31 +14,31 @@ describe("Database Diagnostics Tests", () => {
       console.log("Can't init testhelper");
       throw err;
     }
-
-    done();
   });
 
-  afterEach(async (done) => {
+  afterEach(async () => {
     if (th) await th.shutdown();
-    done();
   });
 
-  it('Ping', async (done) => {
-    await expectAsync(th.db.ping()).toBeResolved();
-    done();
+  it('Ping', async () => {
+    await th.db.ping();
+    expect(1).toBe(1); // As long as we get here...
   });
 
   it('Shutdown and Ping Failure', async () => {
     await th.db.shutdown();
-    await expectAsync(th.db.ping()).toBeRejected();
-    console.log("done?");
-    
+
+    await th.db.ping()
+      .then(() => {
+        //We shouldn't get here
+        expect(true).toBe(false);
+      })
+      .catch(() => { });
   });
 
-  it("gets active connections", async (done) => {
+  it("gets active connections", async () => {
     const value = await th.db.activeConnections();
     expect(value).toBeGreaterThanOrEqual(1);
-    done();
   });
 
 });
@@ -46,17 +46,17 @@ describe("Database Diagnostics Tests", () => {
 
 
 // describe("TRANSACTIONS Tests", () => {
-//   beforeEach(async (done) => {
+//   beforeEach(async () => {
 //     th = await TestHelper.new();
-//     done();
+//     
 //   });
 
-//   afterEach(async (done) => {
+//   afterEach(async () => {
 //     await th.shutdown();
-//     done();
+//     
 //   });
 
-//   it("Rollback a transaction", async (done) => {
+//   it("Rollback a transaction", async () => {
 
 //     const t = await th.db.getTransaction();
 
@@ -79,10 +79,10 @@ describe("Database Diagnostics Tests", () => {
 //     const afterCount2 = await th.db.getValue("SELECT COUNT(*) FROM book");
 //     expect(afterCount2).toBe(beforeCount, "Outside transaction, should NOT be counted.");
 
-//     done();
+//     
 //   });
 
-//   it("Commit a transaction", async (done) => {
+//   it("Commit a transaction", async () => {
 
 //     const t = await th.db.getTransaction();
 
@@ -105,10 +105,10 @@ describe("Database Diagnostics Tests", () => {
 //     const afterCount2 = await th.db.getValue("SELECT COUNT(*) FROM book");
 //     expect(afterCount2).toBe(beforeCount + 1, "Outside transaction, should be counted as it is committed.");
 
-//     done();
+//     
 //   });
 
-//   it("Commit a 150 transactions", async (done) => {
+//   it("Commit a 150 transactions", async () => {
 
 //     for (let i = 0; i < 150; i++) {
 //       const t = await th.db.getTransaction();
@@ -116,10 +116,10 @@ describe("Database Diagnostics Tests", () => {
 //       await t.commit();
 //     }
 
-//     done();
+//     
 //   });
 
-//   it("Timeout a transaction", async (done) => {
+//   it("Timeout a transaction", async () => {
 //     const t = await th.db.getTransaction();
 
 //     const beforeCount = await t.getValue("SELECT COUNT(*) FROM book");
@@ -141,7 +141,7 @@ describe("Database Diagnostics Tests", () => {
 //     const afterCount2 = await th.db.getValue("SELECT COUNT(*) FROM book");
 //     expect(afterCount2).toBe(beforeCount, "Outside transaction, should NOT be counted.");
 
-//     done();
+//     
 //   });
 
 
@@ -151,18 +151,18 @@ describe("INSERT Tests", () => {
 
   let lastQId = 0;
 
-  beforeEach(async (done) => {
+  beforeEach(async () => {
     th = await TestHelper.new();
     lastQId = Number(await th.db.getValue("SELECT MAX(id) FROM book"));
-    done();
+    
   });
 
-  afterEach(async (done) => {
+  afterEach(async () => {
     await th.shutdown();
-    done();
+    
   });
 
-  it("Test Insert, complex type", async (done) => {
+  it("Test Insert, complex type", async () => {
     const b = Book.randomBook();
 
     await th.db.insert(b);
@@ -172,10 +172,10 @@ describe("INSERT Tests", () => {
     const result = await th.db.query(sql);
     expect(result[0]['c']).toBeGreaterThan(2);
 
-    done();
+    
   });
 
-  it("Test Insert, plain object", async (done) => {
+  it("Test Insert, plain object", async () => {
     const b = Book.randomBook();
     const object = Serializer.serialize(b);
 
@@ -186,10 +186,10 @@ describe("INSERT Tests", () => {
     const result = await th.db.query(sql);
     expect(result[0]['c']).toBeGreaterThan(2);
 
-    done();
+    
   });
 
-  it("Test Insert, Wrong object", async (done) => {
+  it("Test Insert, Wrong object", async () => {
 
     const object = { beans: 'foo' };
 
@@ -203,10 +203,10 @@ describe("INSERT Tests", () => {
     const result = await th.db.query(sql);
     expect(result[0]['c']).toBeGreaterThan(1);
 
-    done();
+    
   });
 
-  it("Test Multi Inserts", async (done) => {
+  it("Test Multi Inserts", async () => {
 
     const books = [
       Book.randomBook(),
@@ -214,7 +214,7 @@ describe("INSERT Tests", () => {
       Book.randomBook(),
       Book.randomBook(),
     ];
-  
+
     await th.db.insert(books);
 
     expect(books[0].id).toBe(lastQId + 1);
@@ -226,75 +226,75 @@ describe("INSERT Tests", () => {
     const result = await th.db.query(sql);
     expect(result[0]['c']).toBeGreaterThan(5);
 
-    done();
+    
   });
 
 });
 
 describe("SELECT Tests", () => {
 
-  beforeEach(async (done) => {
+  beforeEach(async () => {
     th = await TestHelper.new();
-    done();
+    
   });
 
-  afterEach(async (done) => {
+  afterEach(async () => {
     await th.shutdown();
-    done();
+    
   });
 
-  it("Tests serializing rows", async (done) => {
+  it("Tests serializing rows", async () => {
     const books = await th.db.getRows<Book>("SELECT * FROM `book`", [], Book);
     expect(books.length).toBeGreaterThan(2);
     const b = books[0];
     expect(b.title).toContain("Being fat")
     expect(b.constructor.name).toBe("Book");
-    done();
+    
   });
 
-  it("Tests getting rows as objects", async (done) => {
+  it("Tests getting rows as objects", async () => {
     const books: any[] = await th.db.getRows("SELECT * FROM `book`", []);
     expect(books.length).toBeGreaterThan(2);
     const b = books[0];
     expect(b.title).toContain("Being fat")
     expect(b.constructor.name).toBe("Object");
-    done();
+    
   });
 
-  it("Tests getting a single row", async (done) => {
+  it("Tests getting a single row", async () => {
     const b = await th.db.getRow<Book>("SELECT * FROM `book`", [], Book);
     expect(b.title).not.toBeNull();
     expect(b.constructor.name).toBe("Book");
-    done();
+    
   });
 
-  it("Tests getting a single row, doesn't exist.", async (done) => {
+  it("Tests getting a single row, doesn't exist.", async () => {
     const q = await th.db.getRow<Book>("SELECT * FROM `book` WHERE id = ?", [99], Book);
     expect(q).toBeNull();
-    done();
+    
   });
 
-  it("Tests getting values.", async (done) => {
+  it("Tests getting values.", async () => {
     const titles = await th.db.getValues("SELECT title FROM `book` LIMIT 3", []);
     expect(titles.length).toBe(3);
     expect(titles).toEqual(['Being fat is a choice', 'De motu corporum in gyrum', 'Reports as Master of the Mint']);
-    done();
+    
   });
 
-  it("Tests getting value", async (done) => {
+  it("Tests getting value", async () => {
     const id = await th.db.getValue("SELECT id FROM `book` WHERE id = ?", [1]);
     expect(id).toEqual(1);
-    done();
+    
   });
 
-  it("Tests getting Booleans", async (done) => {
+  it("Tests getting Booleans", async () => {
     let books = await th.db.getRows<Book>("SELECT * FROM `book` ORDER BY `id`");
     expect(typeof books[0].isGood).toEqual("boolean");
     expect(books[0].isGood).toBe(true);
     expect(books[1].isGood).toBe(null);
     expect(books[2].isGood).toBe(false);
+
     
-    done();
   });
 
 
@@ -302,18 +302,18 @@ describe("SELECT Tests", () => {
 
 describe("getObjects Tests", () => {
 
-  beforeEach(async (done) => {
+  beforeEach(async () => {
     th = await TestHelper.new();
 
-    done();
+    
   });
 
-  afterEach(async (done) => {
+  afterEach(async () => {
     await th.shutdown();
-    done();
+    
   });
 
-  it("gets rows and cast them", async (done) => {
+  it("gets rows and cast them", async () => {
     const qry = { sql: "SELECT * FROM `book` b LEFT OUTER JOIN `author` a ON b.authorId = a.id" };
     const mapping = {
       b: Book,
@@ -332,10 +332,10 @@ describe("getObjects Tests", () => {
     expect(b1.constructor.name).toBe("Book");
     expect(a1.constructor.name).toBe("Author");
 
-    done();
+    
   });
 
-  it("gets rows, no casting", async (done) => {
+  it("gets rows, no casting", async () => {
     const qry = { sql: "SELECT * FROM `book` b LEFT OUTER JOIN `author` a ON b.authorId = a.id" };
     const results = await th.db.getObjects(qry);
 
@@ -350,24 +350,24 @@ describe("getObjects Tests", () => {
     expect(b1.constructor.name).toBe("Object");
     expect(a1.constructor.name).toBe("Object");
 
-    done();
+    
   });
 
 });
 
 describe("UPDATE Tests", () => {
 
-  beforeEach(async (done) => {
+  beforeEach(async () => {
     th = await TestHelper.new();
-    done();
+    
   });
 
-  afterEach(async (done) => {
+  afterEach(async () => {
     await th.shutdown();
-    done();
+    
   });
 
-  it("Tests updating", async (done) => {
+  it("Tests updating", async () => {
     const b = new Book();
     b.id = 1;
     b.title = "bluppieflop";
@@ -380,10 +380,10 @@ describe("UPDATE Tests", () => {
     expect(gotten.subtitle).toBe("Of Foos and Bars");
     expect(gotten.isbn).toBe("0123456789");
 
-    done();
+    
   });
 
-  it("Tests updating, no WHERE", async (done) => {
+  it("Tests updating, no WHERE", async () => {
     const q = new Book();
     q.id = undefined;
     q.title = 'SpongeBob, The untold story.';
@@ -396,10 +396,10 @@ describe("UPDATE Tests", () => {
       expect(err.message).toContain("Object does not have value for");
     }
 
-    done();
+    
   });
 
-  it("Tests updating, NULLS", async (done) => {
+  it("Tests updating, NULLS", async () => {
     await th.db.query("UPDATE book SET subtitle = 'Achieve anything with these easy steps!' WHERE id = 1");
 
     const b = await th.db.getRow<Book>("SELECT * FROM `book` WHERE id = 1", [], Book);
@@ -410,13 +410,15 @@ describe("UPDATE Tests", () => {
     await th.db.update({ object: b });
 
     const gotten = await th.db.getRow<Book>("SELECT * FROM `book` WHERE id = 1", [], Book);
-    expect(gotten.subtitle).not.toBeNull("KeepNulls wasn't set, we should not have updated");
+    //KeepNulls wasn't set, we should not have updated
+    expect(gotten.subtitle).not.toBeNull();
 
     await th.db.update({ object: b, keepNulls: true });
 
     const gotten2 = await th.db.getRow<Book>("SELECT * FROM `book` WHERE id = 1", [], Book);
-    expect(gotten2.subtitle).toBeNull("should be null now");
+    //should be null now
+    expect(gotten2.subtitle).toBeNull();
 
-    done();
+    
   });
 });

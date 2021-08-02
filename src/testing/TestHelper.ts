@@ -9,7 +9,6 @@ export class TestHelper {
   db: Database;
 
   private config: DbConfig;
-  private _jasmineTimeout;
   constructor() { }
 
   public static setTestEnv() {
@@ -18,9 +17,6 @@ export class TestHelper {
   }
 
   private async init() {
-    this._jasmineTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10 * 1000;
-
     TestHelper.setTestEnv();
     this.config = {
       host: process.env.DB_HOST,
@@ -52,7 +48,6 @@ export class TestHelper {
   }
 
   async shutdown() {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineTimeout;
     if (this.db) await this.db.shutdown();
   }
 

@@ -41,6 +41,8 @@ export class Database {
         }
       }
     }
+
+    delete this.config.tinyIntToBool;
   }
 
   public async ready() {
@@ -118,7 +120,6 @@ export class Database {
   }
 
   async shutdown() {
-    console.log("Shutting down")
     if (!this._pool) return;
 
     await this._pool.end();

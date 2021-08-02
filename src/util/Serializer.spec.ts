@@ -34,7 +34,8 @@ describe('Deserialize', () => {
     };
 
     const user = Serializer.deserialize<User>(User, { uuid: "123", name: 'coo', created: timestamp, age: "44" }, mapping);
-    expect(user.name).toBe('COO', "Should be uppercase");
+    //Should be uppercase
+    expect(user.name).toBe('COO');
     expect(user.uuid).toBe("123");
     expect(user.uuid).toBe("123");
     expect(user.age).toBe(44);
