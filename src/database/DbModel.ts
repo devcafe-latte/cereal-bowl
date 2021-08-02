@@ -1,5 +1,4 @@
-import { Connection, Pool } from 'promise-mysql';
-import { QueryOptions } from 'mysql';
+import { Connection, Pool, QueryOptions } from 'mysql2/promise';
 import { DbError } from './DbError';
 import { Serializer } from '../util/Serializer';
 
@@ -65,19 +64,19 @@ export class DbModel {
   async loadModel(con: Connection | Pool) {
     this.tables = [];
 
-    const tableRows = await con.query("SHOW TABLES");
-    if (tableRows.length === 0) throw DbError.new("Can't load database model.", 'no-database');
+    const [rows, fields]: any[] = await con.query("SHOW TABLES");
+    if (rows.length === 0) throw DbError.new("Can't load database model.", 'no-database');
 
     //Get the first column
     let key: string;
-    for (let k in tableRows[0]) {
-      if (tableRows[0].hasOwnProperty(k)) {
+    for (let k in rows[0]) {
+      if (rows[0].hasOwnProperty(k)) {
         key = k;
         break;
       }
     }
 
-    for (let r of tableRows) {
+    for (let r of rows) {
       const t = new Table(r[key]);
       await t.loadColumns(con);
       this.tables.push(t);
@@ -140,7 +139,7 @@ export class Table {
     if (!this.name) throw DbError.new("No Table name!", 'missing-table-name');
 
     this.columns = [];
-    const rows = await con.query("SHOW COLUMNS FROM ??", this.name);
+    const [rows, fields]: any[] = await con.query("SHOW COLUMNS FROM ??", this.name);
     for (let r of rows) {
       this.columns.push(Column.fromDb(r));
     }

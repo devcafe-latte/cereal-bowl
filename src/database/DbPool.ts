@@ -1,62 +1,22 @@
 import moment, { Moment } from 'moment';
-import { QueryOptions } from 'mysql';
+import { Connection, Pool, QueryOptions } from 'mysql2/promise';
 
+import { ObjectMapping, Serializer } from '../util/Serializer';
 import { Type } from './Database';
 import { DbError } from './DbError';
 import { DbModel, UpdateArgs } from './DbModel';
 import { SqlResult } from './SqlResults';
-import { Serializer, ObjectMapping } from '../util/Serializer';
 
 export class DbConnection {
   static TRANS_TIMEOUT_SECONDS = 10;
 
   isTransaction = false;
 
-  private int: NodeJS.Timeout;
-  private started: Moment
+  //todo Reintroduce transactions
+  // private int: NodeJS.Timeout;
+  // private started: Moment
 
   constructor(private _conn: PoolOrConn, private _model: DbModel) {
-  }
-
-  static async newTransaction(conn: PoolOrConn, model: DbModel): Promise<DbConnection> {
-    const db = new DbConnection(conn, model);
-    db.isTransaction = true;
-    console.log("Starting transaction");
-    await conn.beginTransaction();
-
-    db.started = moment();
-    db.int = setInterval(() => {
-      const seconds = moment().diff(db.started, 'second');
-      console.warn(`Transaction running for ${seconds} seconds.`);
-      if (seconds >= DbConnection.TRANS_TIMEOUT_SECONDS) {
-        console.warn("Transaction Timed out. Rolling back.");
-        db.rollback();
-      }
-    }, 1000)
-    return db;
-  }
-
-  async commit() {
-    if (!this.isTransaction) throw DbError.new("Not a transaction");
-    console.log("Committing transaction");
-    try {
-      clearInterval(this.int);
-      await this._conn.commit();
-      await this._conn.release();
-    } catch (err){ 
-      await this._conn.release();
-    }
-  }
-  async rollback() {
-    if (!this.isTransaction) throw DbError.new("Not a transaction");
-    console.log("Rolling back transaction");
-    try {
-      clearInterval(this.int);
-      await this._conn.rollback();
-      await this._conn.release();
-    } catch (err){ 
-      await this._conn.release();
-    }
   }
 
   async delete(table: string, id: string | string[] | number | number[], column = 'id') {
@@ -69,7 +29,7 @@ export class DbConnection {
     const values = [table, column, ids];
 
     try {
-      const result = await this._conn.query(sql, values);
+      const result: any = await this._conn.query(sql, values);
       return result.affectedRows;
     } catch (err) {
       console.error("DELETE failed", err);
@@ -84,7 +44,7 @@ export class DbConnection {
     const hasWhereClause = Boolean(qry.sql.match(/(\sWHERE\s)/));
     if (!hasWhereClause) throw DbError.new("Updates need a WHERE clause!", 'missing-where-clause');
 
-    const result = await this._conn.query(qry);
+    const [result]: any = await this._conn.query(qry);
     return result.affectedRows;
   }
 
@@ -95,7 +55,7 @@ export class DbConnection {
     if (!Array.isArray(objects)) objects = [objects];
 
     const qry = this._model.createInsert(objects, table);
-    const result = await this._conn.query(qry);
+    const [result]: any = await this._conn.query(qry);
 
     if (!result.insertId) return;
 
@@ -146,9 +106,9 @@ export class DbConnection {
   }
 
   async getRows<T>(sql: string, values?: any, type?: Type<T>): Promise<T[]> {
-    let rows: any[];
+    let rows: any[], fields: any[];
     try {
-      rows = await this._conn.query(sql, values);
+      [rows, fields] = await this._conn.query(sql, values);
     } catch (err) {
       console.error("getRows error:", err);
       console.info(sql, values);
@@ -174,7 +134,8 @@ export class DbConnection {
 
     let result;
     try {
-      result = SqlResult.new(await this._conn.query(qry));
+      const [rows, fields]: any[] = await this._conn.query(qry);
+      result = SqlResult.new(rows);
     } catch (err) {
       console.error("getRows error:", err);
       console.info(qry.sql, qry.values);
@@ -195,17 +156,66 @@ export class DbConnection {
   async query(options: QueryOptions): Promise<any>;
   async query(sql: string, values?: any): Promise<any>;
   async query(sql: any, values?: any): Promise<any> {
-    return this._conn.query(sql, values);
+    const [rows]: any[] = await this._conn.query(sql, values);
+    return rows;
   }
 }
 
-export interface PoolOrConn {
-  query(options: QueryOptions): Promise<any>;
-  query(sql: string, values?: any): Promise<any>;
-  query(sql: any, values?: any): Promise<any>;
+// export class DbTransaction extends DbConnection {
+//   isTransaction: true = true;
+//   private _conn: Connection;
+  
+//   static async newTransaction(conn: Connection, model: DbModel): Promise<DbConnection> {
+//     const db = new DbConnection(conn, model);
+//     db.isTransaction = true;
+//     console.log("Starting transaction");
+//     await conn.beginTransaction();
 
-  beginTransaction?(): Promise<void>;
-  rollback?(): Promise<void>;
-  commit?(): Promise<void>;
-  release?(): Promise<void>;
-}
+//     db.started = moment();
+//     db.int = setInterval(() => {
+//       const seconds = moment().diff(db.started, 'second');
+//       console.warn(`Transaction running for ${seconds} seconds.`);
+//       if (seconds >= DbConnection.TRANS_TIMEOUT_SECONDS) {
+//         console.warn("Transaction Timed out. Rolling back.");
+//         db.rollback();
+//       }
+//     }, 1000)
+//     return db;
+//   }
+
+//   async commit() {
+//     if (!this.isTransaction) throw DbError.new("Not a transaction");
+//     console.log("Committing transaction");
+//     try {
+//       clearInterval(this.int);
+//       await this._conn.commit();
+//       await this._conn.release();
+//     } catch (err){ 
+//       await this._conn.release();
+//     }
+//   }
+//   async rollback() {
+//     if (!this.isTransaction) throw DbError.new("Not a transaction");
+//     console.log("Rolling back transaction");
+//     try {
+//       clearInterval(this.int);
+//       await this._conn.rollback();
+//       await this._conn.release();
+//     } catch (err){ 
+//       await this._conn.release();
+//     }
+//   }
+// }
+
+export type PoolOrConn = Pool | Connection;
+
+// export interface PoolOrConn {
+//   query(options: QueryOptions): Promise<any>;
+//   query(sql: string, values?: any): Promise<any>;
+//   query(sql: any, values?: any): Promise<any>;
+
+//   beginTransaction?(): Promise<void>;
+//   rollback?(): Promise<void>;
+//   commit?(): Promise<void>;
+//   release?(): Promise<void>;
+// }

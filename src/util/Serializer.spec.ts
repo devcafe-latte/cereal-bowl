@@ -111,21 +111,35 @@ describe('Serialize', () => {
       serialize: (val) => `moo ${val.name}`,
     });
 
-    const data = {
+    serializerMappings.push({
+      name: 'test-2',
+      isType: (val, className) => val.isTest2 !== undefined,
+      serialize: (val) => `poo ${val.name}`,
+    });
+
+    const type1 = {
       isTestThing: true,
-      name: 'Ferdinand'
+      name: 'Ferdinand',
     }
 
-    expect(Serializer.serialize(data)).toBe('moo Ferdinand');
+    const type2 = {
+      isTest2: true,
+      name: 'Spongebob',
+    }
+
+    expect(Serializer.serialize(type1)).toBe('moo Ferdinand');
+    expect(Serializer.serialize(type2)).toBe('poo Spongebob');
 
     const object = {
-      testData: data,
+      testData: type1,
+      testData2: type2,
       foo: 'bar',
       bluh: { name: 'knop' }
     }
 
     const result = Serializer.serialize(object);
     expect(result.testData).toBe('moo Ferdinand');
+    expect(result.testData2).toBe('poo Spongebob');
     expect(result.foo).toBe('bar');
     expect(result.bluh.name).toBe('knop');
 

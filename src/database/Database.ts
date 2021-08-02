@@ -1,12 +1,11 @@
-import { PoolConfig, QueryOptions } from 'mysql';
-import { createPool, Pool } from 'promise-mysql';
+import { Pool, PoolOptions, QueryOptions, createPool } from 'mysql2/promise';
 
 import { ObjectMapping } from '../util/Serializer';
 import { DbModel, UpdateArgs } from './DbModel';
 import { DbConnection } from './DbPool';
 import { SqlResult } from './SqlResults';
 
-export interface DbConfig extends PoolConfig {
+export interface DbConfig extends PoolOptions {
   tinyIntToBool?: boolean;
   host: string;
   database: string;
@@ -51,7 +50,7 @@ export class Database {
 
   private async init() {
     //Setup DB Connection
-    this._pool = await createPool(this.config);
+    this._pool = createPool(this.config);
 
     this._model = new DbModel(this.config.database);
     await this._model.loadModel(this._pool);
@@ -60,12 +59,13 @@ export class Database {
   }
 
   async getTransaction() {
-    return DbConnection.newTransaction(await this._pool.getConnection(), this._model);
+    throw "Not implemented";
+    // return DbConnection.newTransaction(await this._pool.getConnection(), this._model);
   }
 
   async ping() {
     const c = await this._pool.getConnection();
-    await c.release();
+    c.release();
   }
 
   async activeConnections(): Promise<number> {
@@ -118,9 +118,11 @@ export class Database {
   }
 
   async shutdown() {
+    console.log("Shutting down")
     if (!this._pool) return;
 
-    return this._pool.end();
+    await this._pool.end();
+    delete this._pool;
   }
 
 }

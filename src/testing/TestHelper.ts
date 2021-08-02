@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { readFileSync } from 'fs';
-import { createConnection } from 'promise-mysql';
+import { createConnection } from 'mysql2/promise';
 
 import { Database, DbConfig } from '../database/Database';
 
@@ -19,7 +19,7 @@ export class TestHelper {
 
   private async init() {
     this._jasmineTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60 * 1000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10 * 1000;
 
     TestHelper.setTestEnv();
     this.config = {
@@ -57,7 +57,7 @@ export class TestHelper {
   }
 
   async sleep(ms: number) {
-    return new Promise((res, rej) => {
+    return new Promise<void>((res, rej) => {
       setTimeout(() => res(), ms);
     });
   }
