@@ -1,7 +1,5 @@
-import moment from 'moment';
-
+import { DateTime } from 'luxon';
 import { Serializer, ObjectMapping, deserializerMappings, serializerMappings } from './Serializer';
-import { Moment } from 'moment';
 
 describe('Deserialize', () => {
 
@@ -27,9 +25,9 @@ describe('Deserialize', () => {
   });
 
   it('Mapping', () => {
-    const timestamp = moment().unix();
+    const timestamp = DateTime.now().toSeconds();
     const mapping = {
-      created: "Moment",
+      created: "datetime",
       name: (v: string) => v.toUpperCase(),
       nope: (v) => false,
       age: 'nuMBer'
@@ -41,8 +39,8 @@ describe('Deserialize', () => {
     expect(user.uuid).toBe("123");
     expect(user.age).toBe(44);
     expect(typeof user.age).toBe("number");
-    expect(user.created.constructor.name).toBe("Moment");
-    expect(user.created.unix()).toBe(timestamp);
+    expect(user.created.constructor.name).toBe("DateTime");
+    expect(user.created.toSeconds()).toBe(timestamp);
   });
 
   it('Custom transformations', () => {
@@ -58,21 +56,21 @@ describe('Deserialize', () => {
 
   it("Session", () => {
     const mapping: ObjectMapping = {
-      created: 'moment',
-      expires: 'moment'
+      created: 'datetime',
+      expires: 'datetime'
     };
     let s = Serializer.deserialize<Session>(Session, exampleJson.session, mapping);
-    expect(s.created.constructor.name).toBe("Moment");
-    expect(s.expires.constructor.name).toBe("Moment");
+    expect(s.created.constructor.name).toBe("DateTime");
+    expect(s.expires.constructor.name).toBe("DateTime");
   });
 
   it("User", () => {
     const mapping: ObjectMapping = {
-      created: 'moment',
+      created: 'datetime',
       session: (data) => Session.deserialize(data),
     };
     let u = Serializer.deserialize<User>(User, exampleJson, mapping);
-    expect(u.created.constructor.name).toBe("Moment");
+    expect(u.created.constructor.name).toBe("DateTime");
     expect(u.session.constructor.name).toBe("Session");
   });
 });
@@ -83,7 +81,7 @@ describe('Serialize', () => {
     expect(Serializer.serialize(1)).toBe(1);
     expect(Serializer.serialize("foo")).toBe("foo");
     expect(Serializer.serialize(false)).toBe(false);
-    expect(Serializer.serialize(moment().year(2020).startOf('year'))).toBe(1577811600);
+    expect(Serializer.serialize(DateTime.fromObject({ year: 2020, month: 1, day: 1 }))).toBe(1577811600);
   });
 
   it("takes a simple array", () => {
@@ -98,8 +96,8 @@ describe('Serialize', () => {
     expect(result).toEqual(obj);
   });
 
-  it("takes a simple object With a Moment", () => {
-    const obj = { date: moment() };
+  it("takes a simple object With a Date", () => {
+    const obj = { date: DateTime.now() };
     const result = Serializer.serialize(obj);
     expect(typeof result.date).toBe('number');
   });
@@ -147,13 +145,13 @@ describe('Serialize', () => {
 
   it("takes a complex Object", () => {
     const input = {
-      d: moment().startOf('week'),
+      d: DateTime.now().startOf('week'),
       str: 'foo',
       o: { serialize: () => { return { r: 'serialized' } } }
     };
 
     const expected = {
-      d: moment().startOf('week').unix(),
+      d: DateTime.now().startOf('week').toSeconds(),
       str: 'foo',
       o: { r: 'serialized' }
     };
@@ -164,13 +162,13 @@ describe('Serialize', () => {
 
   it("takes an array with a complex Object", () => {
     const input = {
-      d: moment().startOf('week'),
+      d: DateTime.now().startOf('week'),
       str: 'foo',
       o: { serialize: () => { return { r: 'serialized' } } }
     };
 
     const expected = {
-      d: moment().startOf('week').unix(),
+      d: DateTime.now().startOf('week').toSeconds(),
       str: 'foo',
       o: { r: 'serialized' }
     };
@@ -186,19 +184,19 @@ class User {
   email: string = null;
   session: Session = null;
   memberships: any[] = null;
-  created: Moment = null;
+  created: DateTime = null;
   age?: number = null;
 }
 
 class Session {
-  created: Moment = null;
-  expires: Moment = null;
+  created: DateTime = null;
+  expires: DateTime = null;
   token: string = null;
 
   static deserialize(data: any): Session {
     const m: ObjectMapping = {
-      created: 'moment',
-      expires: 'moment',
+      created: 'datetime',
+      expires: 'datetime',
     };
     return Serializer.deserialize(Session, data, m);
   }

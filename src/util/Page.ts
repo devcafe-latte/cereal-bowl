@@ -49,6 +49,5 @@ export interface PageResult {
   items: any[],
   currentPage: number;
   totalItems?: number;
-  lastPage?: number;
   perPage?: number;
 }

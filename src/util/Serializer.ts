@@ -1,5 +1,4 @@
-import moment from 'moment';
-import { Moment } from 'moment';
+import { DateTime } from 'luxon';
 
 //Serialization
 export interface SerializerMapping {
@@ -9,16 +8,16 @@ export interface SerializerMapping {
 }
 export const defaultSerializerMappings: SerializerMapping[] = [
   {
-    name: 'moment',
-    isType: (val, className) => className === 'Moment',
-    serialize: (val: Moment) => val.unix(),
+    name: 'datetime',
+    isType: (data, className) => DateTime.isDateTime(data),
+    serialize: (data: DateTime) => data.toSeconds(),
   },
 ];
 export let serializerMappings: SerializerMapping[] = [...defaultSerializerMappings];
 
 //Deserialization
 export const defaultDeserializerMappings: DeserializerMapppings = {
-  'moment': (value) => moment.unix(value),
+  'datetime': (value) => DateTime.fromSeconds(value),
   'number': (value) => Number(value),
 };
 export let deserializerMappings: DeserializerMapppings = { ...defaultDeserializerMappings };
@@ -65,7 +64,6 @@ export class Serializer {
 
     //Traverse input 
     // Array? recursive call
-    // Moment? call unix()
     // serialize? call serialize()
     // object? recursive call
 

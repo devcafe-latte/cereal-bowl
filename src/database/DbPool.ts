@@ -1,4 +1,3 @@
-import moment, { Moment } from 'moment';
 import { Connection, Pool, QueryOptions } from 'mysql2/promise';
 
 import { ObjectMapping, Serializer } from '../util/Serializer';
