@@ -10,7 +10,7 @@ export const defaultSerializerMappings: SerializerMapping[] = [
   {
     name: 'datetime',
     isType: (data, className) => DateTime.isDateTime(data),
-    serialize: (data: DateTime) => data.toSeconds(),
+    serialize: (data: DateTime) => Math.floor(data.toSeconds()),
   },
 ];
 export let serializerMappings: SerializerMapping[] = [...defaultSerializerMappings];
