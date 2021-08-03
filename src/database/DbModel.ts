@@ -167,11 +167,11 @@ export class Table {
     if (value === undefined || value === null) return null;
 
     if (typeof value === "object") {
-      //It can be a Moment, 
+      //It can be a Date, 
       //  or it can be something we don't know what to do with.
 
-      //If we have a variable text column, then assume we want to store the json.
-      if (value.constructor.name === "Object" && this.getColumn(column).type === "text") {
+      //If we have a json column, then just return the json.
+      if (value.constructor.name === "Object" && this.getColumn(column).type === "json") {
         return JSON.stringify(value);
       }
 
