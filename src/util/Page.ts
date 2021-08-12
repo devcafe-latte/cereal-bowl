@@ -40,6 +40,8 @@ export class Page<T> {
     return {
       currentPage: this.currentPage,
       lastPage: this.lastPage,
+      totalItems: this.totalItems,
+      perPage: this.perPage,
       items: Serializer.serialize(this.items),
     }
   }

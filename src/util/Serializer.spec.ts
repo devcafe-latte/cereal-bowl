@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Serializer, ObjectMapping, deserializerMappings, serializerMappings } from './Serializer';
+import { Page } from './Page';
 
 describe('Deserialize', () => {
 
@@ -17,6 +18,22 @@ describe('Deserialize', () => {
     memberships:
       [{ id: 1, created: 1565516907, app: 'test-main', role: 'admin' }]
   };
+
+  test("page bug", () => {
+    const p = new Page({
+      perPage: 10,
+      totalItems: 100,
+      currentPage: 3,
+      items: []
+    });
+
+    expect(p.totalItems).toBe(100);
+
+    const s = Serializer.serialize(p);
+    expect(s.totalItems).toBe(100);
+    expect(s.perPage).toBe(10);
+
+  });
 
   it('Basics', () => {
     const user = Serializer.deserialize<User>(User, { uuid: "123", name: 'coo' });
