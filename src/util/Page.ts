@@ -5,7 +5,7 @@ export class Page<T> {
   currentPage: number = 0;
   lastPage: number = 0;
   totalItems: number = 0;
-  private perPage: number = 25;
+  perPage: number = 25;
 
   constructor(result: PageResult, type?: any) {
     Object.assign(this, result);
