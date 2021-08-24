@@ -36,7 +36,7 @@ export class Serializer {
     type: { new (): T },
     data: any,
     mapping: ObjectMapping = {},
-    context = 'default'
+    context = "default"
   ): T {
     if (data === null || data === undefined) return null;
 
@@ -51,7 +51,11 @@ export class Serializer {
     return o;
   }
 
-  private static mapValue(value: any, action: string | Function, context: string): any {
+  private static mapValue(
+    value: any,
+    action: string | Function,
+    context: string
+  ): any {
     //No mapping
     if (!action) return value;
 
@@ -63,7 +67,7 @@ export class Serializer {
 
     const lower = action.toLowerCase();
     const mappings = deserializerContexts[context];
-    if (!mappings) throw 'Unknown context: ' + context;
+    if (!mappings) throw "Unknown context: " + context;
     if (mappings[lower]) {
       return mappings[lower](value);
     }
@@ -74,7 +78,7 @@ export class Serializer {
 
   static serialize(
     input: any,
-    context = "default",
+    context: string | SerializerMapping | SerializerMapping[] = "default",
     maxDepth = 10,
     currentDepth = 0
   ) {
@@ -97,9 +101,17 @@ export class Serializer {
     } else if (typeof input === "object" && input !== null) {
       const className = input.constructor.name;
 
-      if (!serializerContexts[context]) throw "unknown context " + context;
+      let mappings: SerializerMapping[];
+      if (typeof context === "string") {
+        if (!serializerContexts[context]) throw "unknown context " + context;
+        mappings = serializerContexts[context];
+      } else if(Array.isArray(context)) {
+        mappings = context;
+      } else {
+        mappings = [context];
+      }
 
-      for (let m of serializerContexts[context]) {
+      for (let m of mappings) {
         if (m.isType(input, className)) return m.serialize(input);
       }
 

@@ -7,6 +7,7 @@ import {
   defaultSerializerMappings,
 } from "./Serializer";
 import { Page } from "./Page";
+import { SerializerMapping } from './Serializer';
 
 describe("Deserialize", () => {
   const exampleJson = {
@@ -229,6 +230,38 @@ describe("Serialize", () => {
     expect(result.testData2).toBe("poo Spongebob");
     expect(result.foo).toBe("bar");
     expect(result.bluh.name).toBe("knop");
+  });
+
+  it("takes a serializer mapping as object", () => {
+    const mapping: SerializerMapping = {
+      name: "test-1",
+      isType: (val, className) => val.useMapping,
+      serialize: (val) => `moo ${val.name}`,
+    };
+
+    const type1 = {
+      useMapping: true,
+      name: "Ferdinand",
+    };
+
+    expect(Serializer.serialize(type1, mapping)).toBe("moo Ferdinand");
+
+  });
+
+  it("takes a serializer mapping as Array", () => {
+    const mapping: SerializerMapping = {
+      name: "test-1",
+      isType: (val, className) => val.useMapping,
+      serialize: (val) => `moo ${val.name}`,
+    };
+
+    const type1 = {
+      useMapping: true,
+      name: "Ferdinand",
+    };
+
+    expect(Serializer.serialize(type1, [mapping])).toBe("moo Ferdinand");
+
   });
 
   it("takes a complex Object", () => {

@@ -35,16 +35,6 @@ export class Page<T> {
 
     return p;
   }
-
-  serialize() {
-    return {
-      currentPage: this.currentPage,
-      lastPage: this.lastPage,
-      totalItems: this.totalItems,
-      perPage: this.perPage,
-      items: Serializer.serialize(this.items),
-    }
-  }
 }
 
 export interface PageResult {
