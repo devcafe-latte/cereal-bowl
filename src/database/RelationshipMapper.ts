@@ -1,14 +1,13 @@
-import { SqlResult } from './SqlResults';
-import { DbError } from './DbError';
+import { SqlResult } from "./SqlResults";
+import { DbError } from "./DbError";
 
 export class RelationshipMapper {
   private source: Source;
 
-  private dest: Destination
+  private dest: Destination;
 
   private type: "one" | "many" | "unknown" = "unknown";
   private result: SqlResult;
-
 
   static put(table: string, result: SqlResult): RelationshipMapper {
     const rm = new RelationshipMapper();
@@ -16,7 +15,7 @@ export class RelationshipMapper {
 
     rm.source = {
       table,
-      objects: result.get(table)
+      objects: result.get(table),
     };
 
     return rm;
@@ -26,25 +25,45 @@ export class RelationshipMapper {
     this.dest = {
       table,
       property,
-      objects: this.result.get(table)
+      objects: this.result.get(table),
     };
 
     return this;
   }
 
-  on(uniqueColumn: string, otherIdColumn: string = 'id'): SqlResult {
-    if (this.source.objects[0] && this.source.objects[0][uniqueColumn] !== undefined) {
+  on(uniqueColumn: string, otherIdColumn: string = "id", index = 0): SqlResult {
+    if (
+      this.source.objects[index] &&
+      this.source.objects[index][uniqueColumn] !== undefined
+    ) {
       this.source.matchOn = uniqueColumn;
       this.dest.matchOn = otherIdColumn;
       this.type = "many";
-    } else if (this.dest.objects[0] && this.dest.objects[0][uniqueColumn] !== undefined) {
+    } else if (
+      this.dest.objects[index] &&
+      this.dest.objects[index][uniqueColumn] !== undefined
+    ) {
       this.source.matchOn = otherIdColumn;
       this.dest.matchOn = uniqueColumn;
       this.type = "one";
     } else if (this.dest.objects.length > 0 && this.source.objects.length > 0) {
-      throw DbError.new(`Column ${uniqueColumn} found in source nor destination`, 'mapping-error');
+      //Increase the index and check again.
+      index++;
+
+      if (
+        index > 1000 ||
+        (index >= this.source.objects.length &&
+          index >= this.dest.objects.length)
+      ) {
+        throw DbError.new(
+          `Column ${uniqueColumn} found in source nor destination`,
+          "mapping-error"
+        );
+      } else {
+        return this.on(uniqueColumn, otherIdColumn, index);
+      }
     } else {
-      //Else, it's possible that the column we're matching on is on the table that returned 0 rows. 
+      //Else, it's possible that the column we're matching on is on the table that returned 0 rows.
       //  That's not an error, we can just safely not process anything.
       return this.result;
     }
@@ -64,7 +83,7 @@ export class RelationshipMapper {
 
   private processOne() {
     const hashTable = {};
-    for( let o of this.source.objects) {
+    for (let o of this.source.objects) {
       hashTable[o[this.source.matchOn]] = o;
     }
 
@@ -87,16 +106,16 @@ export class RelationshipMapper {
 
     //put them in the objects.
     for (let destObject of this.dest.objects) {
-      destObject[this.dest.property] = hashTable[destObject[this.dest.matchOn]] || [];
+      destObject[this.dest.property] =
+        hashTable[destObject[this.dest.matchOn]] || [];
     }
   }
-
 }
 
 interface Source {
-  table: string,
-  matchOn?: string,
-  objects: any[],
+  table: string;
+  matchOn?: string;
+  objects: any[];
 }
 
 interface Destination extends Source {

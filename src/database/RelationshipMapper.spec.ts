@@ -95,4 +95,57 @@ describe("Test the RelationshipMapper", () => {
     expect(users[2].imports.length).toBe(1);
     
   });
+
+  it("[bug] Tests on(source, dest), first object doesn't have unique column", () => {
+
+    const rows = [
+      { u: { id: 1, uuid: "12345-123456-00001", username: 'Jack' }, i: { id: 1, name: 'Import 1' } },
+      { u: { id: 1, uuid: "12345-123456-00001", username: 'Jack' }, i: { userUuid: "12345-123456-00001", id: 2, name: 'Import 2' } },
+      { u: { id: 2, uuid: "12345-123456-00003", username: 'Bruce' }, i: { userUuid: "12345-123456-00003", id: 3, name: 'Import 3' } },
+      { u: { id: 3, uuid: "12345-123456-00004", username: 'Morty' }, i: { userUuid: "12345-123456-00004", id: 4, name: 'Import 4' } },
+      { u: { id: null, uuid: null, username: null }, i: { userUuid: null, id: 5, name: 'Import 5' } },
+    ];
+
+    const result = SqlResult.new(rows);
+
+    result.put('u').into('i', 'user').on('userUuid', 'uuid');
+    result.put('i').into('u', 'imports').on('userUuid','uuid');
+
+    const imports = result.get<any>('i');
+    expect(imports.length).toBe(5);
+    expect(imports[0].user).toBeUndefined();
+    expect(imports[1].user).toBeDefined();
+    expect(imports[2].user).toBeDefined();
+    expect(imports[3].user).toBeDefined();
+    expect(imports[4].user).toBeUndefined();
+
+    const users = result.get<any>('u');
+    expect(users.length).toBe(3);
+    
+    expect(users[0].imports.length).toBe(1);
+    expect(users[1].imports.length).toBe(1);
+    expect(users[2].imports.length).toBe(1);
+    
+  });
+
+  it("[bug] Tests on(source, dest), No unique column", () => {
+
+    const rows = [
+      { u: { id: 1, uuid: "12345-123456-00001", username: 'Jack' }, i: { id: 1, name: 'Import 1' } },
+      { u: { id: 1, uuid: "12345-123456-00001", username: 'Jack' }, i: { id: 2, name: 'Import 2' } },
+      { u: { id: 2, uuid: "12345-123456-00003", username: 'Bruce' }, i: { id: 3, name: 'Import 3' } },
+      { u: { id: 3, uuid: "12345-123456-00004", username: 'Morty' }, i: { id: 4, name: 'Import 4' } },
+      { u: { id: null, uuid: null, username: null }, i: { id: 5, name: 'Import 5' } },
+    ];
+
+    const result = SqlResult.new(rows);
+
+    try {
+      result.put('i').into('u', 'imports').on('userUuid','uuid');
+      throw 'nope';
+    } catch (err) {
+      expect(err.message).toContain('found in source nor destination');
+    }
+    
+  });
 });
