@@ -1,6 +1,6 @@
 import { Connection, Pool, QueryOptions } from 'mysql2/promise';
-import { DbError } from './DbError';
 import { Serializer } from '../util/Serializer';
+import { DbError } from './DbError';
 
 export interface UpdateArgs {
   object: any,
@@ -170,9 +170,17 @@ export class Table {
       //It can be a Date, 
       //  or it can be something we don't know what to do with.
 
+      const constructor = value.constructor.name;
+      const colType = this.getColumn(column).type;
       //If we have a json column, then just return the json.
-      if (value.constructor.name === "Object" && this.getColumn(column).type === "json") {
+      if (constructor === "Object" && colType === "json") {
         return JSON.stringify(value);
+      }
+
+      //If we have a blob column, then just return the Buffer.
+      const blobs = ['tinyblob', 'blob', 'mediumblob', 'longblob'];
+      if (Buffer.isBuffer(value) && blobs.includes(colType)) {
+        return value;
       }
 
       //Use the serializers mappings to convert.

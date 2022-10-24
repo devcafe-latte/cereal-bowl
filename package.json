@@ -1,6 +1,6 @@
 {
   "name": "cereal-bowl",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "Simple ORM and Object Serializer",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -23,13 +23,13 @@
   "author": "Co van Leeuwen",
   "license": "MIT",
   "dependencies": {
-    "@types/lodash": "^4.14.161",
-    "@types/luxon": "^1.27.1",
     "dotenv": "^8.2.0",
     "luxon": "^2.0.1",
     "mysql2": "^2.2.5"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.161",
+    "@types/luxon": "^1.27.1",
     "@babel/core": "^7.14.8",
     "@babel/preset-env": "^7.14.9",
     "@babel/preset-typescript": "^7.14.5",

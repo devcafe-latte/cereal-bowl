@@ -11,6 +11,13 @@ DROP DATABASE IF EXISTS `cereal-box-test`;
 CREATE DATABASE `cereal-box-test` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 USE `cereal-box-test`;
 
+DROP TABLE IF EXISTS `uncommonTypes`;
+CREATE TABLE `uncommonTypes` (
+  `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `json` json NULL,
+  `data` tinyblob NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 DROP TABLE IF EXISTS `author`;
 CREATE TABLE `author` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

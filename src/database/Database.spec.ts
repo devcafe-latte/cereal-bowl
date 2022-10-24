@@ -1,5 +1,6 @@
+import { Author, Book } from '../testing/model';
 import { TestHelper } from '../testing/TestHelper';
-import { Book, Author } from '../testing/model';
+import { UncommonTypes } from '../testing/UncommonTypes';
 import { Serializer } from '../util/Serializer';
 
 let th: TestHelper;
@@ -38,9 +39,28 @@ describe("Database Diagnostics Tests", () => {
 
   it("gets active connections", async () => {
     const value = await th.db.activeConnections();
-    expect(value).toBeGreaterThanOrEqual(1);
+    expect(value)
   });
 
+  test('storing json', async () => {
+    const obj = new UncommonTypes();
+    obj.json = { what: 'foo', is: 'bar', bar: 3 };
+    await th.db.insert(obj);
+
+    const gotten = await th.db.getRow<UncommonTypes>('SELECT * FROM uncommonTypes WHERE id = 1', [], UncommonTypes);
+    expect(gotten.json).not.toBeNull();
+    expect(gotten.json.what).toBe('foo');
+  });
+
+  test('storing blobs', async () => {
+    const obj = new UncommonTypes();
+    const text = 'What a nice day';
+    obj.data = Buffer.from(text);
+    await th.db.insert(obj);
+
+    const gotten = await th.db.getRow<UncommonTypes>('SELECT * FROM uncommonTypes WHERE id = 1', [], UncommonTypes);
+    expect(gotten.data.toString('utf-8')).toBe(text);
+  });
 });
 
 
