@@ -42,7 +42,7 @@ describe("Database Diagnostics Tests", () => {
     expect(value)
   });
 
-  test('storing json', async () => {
+  test('storing json object', async () => {
     const obj = new UncommonTypes();
     obj.json = { what: 'foo', is: 'bar', bar: 3 };
     await th.db.insert(obj);
@@ -50,6 +50,16 @@ describe("Database Diagnostics Tests", () => {
     const gotten = await th.db.getRow<UncommonTypes>('SELECT * FROM uncommonTypes WHERE id = 1', [], UncommonTypes);
     expect(gotten.json).not.toBeNull();
     expect(gotten.json.what).toBe('foo');
+  });
+
+  test('storing json array', async () => {
+    const obj = new UncommonTypes();
+    obj.json = [{ what: 'foo', is: 'bar', bar: 3 }];
+    await th.db.insert(obj);
+
+    const gotten = await th.db.getRow<UncommonTypes>('SELECT * FROM uncommonTypes WHERE id = 1', [], UncommonTypes);
+    expect(gotten.json).not.toBeNull();
+    expect(gotten.json[0].what).toBe('foo');
   });
 
   test('storing blobs', async () => {
@@ -346,8 +356,8 @@ describe("getObjects Tests", () => {
     expect(results.get('b').length).toBe(3);
     expect(results.get('a').length).toBe(2);
 
-    const b1 = results.get('b', 1);
-    const a1 = results.get('a', 1);
+    const b1 = results.get<any>('b', 1);
+    const a1 = results.get<any>('a', 1);
 
     expect(b1.constructor.name).toBe("Book");
     expect(a1.constructor.name).toBe("Author");
@@ -364,8 +374,8 @@ describe("getObjects Tests", () => {
     expect(results.get('b').length).toBe(3);
     expect(results.get('a').length).toBe(2);
 
-    const b1 = results.get('b', 1);
-    const a1 = results.get('a', 1);
+    const b1 = results.get<any>('b', 1);
+    const a1 = results.get<any>('a', 1);
 
     expect(b1.constructor.name).toBe("Object");
     expect(a1.constructor.name).toBe("Object");

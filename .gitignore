@@ -5,3 +5,4 @@ test-secrets.env
 .env
 craptest.spec.ts
 crap.ts
+/coverage

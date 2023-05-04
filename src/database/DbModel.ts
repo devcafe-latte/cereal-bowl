@@ -173,7 +173,7 @@ export class Table {
       const constructor = value.constructor.name;
       const colType = this.getColumn(column).type;
       //If we have a json column, then just return the json.
-      if (constructor === "Object" && colType === "json") {
+      if ((constructor === "Object" || constructor === 'Array') && colType === "json") {
         return JSON.stringify(value);
       }
 
